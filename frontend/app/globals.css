@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0d1117] text-[#e6edf3] font-sans antialiased;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #161b22; }
+  ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #6e7681; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#6e40c9] hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer;
+  }
+  .btn-secondary {
+    @apply bg-[#1c2333] hover:bg-[#21262d] border border-[#30363d] text-[#e6edf3] px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer;
+  }
+  .btn-danger {
+    @apply bg-[#d73a49] hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer;
+  }
+  .card {
+    @apply bg-[#1c2333] border border-[#30363d] rounded-xl p-5 shadow-lg;
+  }
+  .input {
+    @apply bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-[#e6edf3] placeholder:text-[#6e7681] focus:outline-none focus:ring-2 focus:ring-[#6e40c9]/50 focus:border-[#6e40c9] transition-all w-full;
+  }
+  .label {
+    @apply text-xs font-medium text-[#8b949e] uppercase tracking-wide mb-1 block;
+  }
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#8b949e] hover:text-[#e6edf3] hover:bg-[#21262d] transition-all duration-200 cursor-pointer;
+  }
+  .nav-item-active {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm bg-[#6e40c9]/20 text-[#6e40c9] font-medium border border-[#6e40c9]/20 cursor-pointer;
+  }
+}
