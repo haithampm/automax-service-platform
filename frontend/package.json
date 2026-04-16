@@ -1,5 +1,5 @@
 {
-  "name": "automax-frontend",
+  "name": "automax-service-platform",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,30 +9,23 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.3",
-    "react": "^18",
-    "react-dom": "^18",
-    "axios": "^1.7.2",
-    "lucide-react": "^0.379.0",
-    "clsx": "^2.1.1",
-    "date-fns": "^3.6.0",
-    "react-hot-toast": "^2.4.1",
-    "@tanstack/react-query": "^5.40.0",
-    "zustand": "^4.5.2",
-    "react-hook-form": "^7.51.5",
-    "zod": "^3.23.8",
-    "@hookform/resolvers": "^3.6.0",
-    "leaflet": "^1.9.4",
-    "react-leaflet": "^4.2.1"
+    "next": "14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.10.3",
+    "lucide-react": "^0.363.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "@types/leaflet": "^1.9.12",
-    "autoprefixer": "^10.0.1",
-    "postcss": "^8",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.20",
+    "@types/react": "^18.2.58",
+    "@types/react-dom": "^18.2.19",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.0"
   }
 }
