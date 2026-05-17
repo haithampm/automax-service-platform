@@ -1,106 +1,221 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { FileText, Plus, RefreshCw, Search, Filter } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  RefreshCw,
+  Search,
+  Filter,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  ChevronDown,
+} from "lucide-react";
+import { clsx } from "clsx";
 
 const MOCK_REQUESTS = [
-  { id: "1", number: "REQ-2026-000010", title: "Test BA 4/2- 3", status: "New", priority: "Medium", assignee: "contractor1", sla: "On Track", source: "INC-2026-000145" },
-  { id: "2", number: "REQ-2026-000009", title: "bulb - Maharashtra - Kollam", status: "New", priority: "Medium", assignee: "contractor1", sla: "On Track", source: "INC-2026-000144" },
-  { id: "3", number: "REQ-2026-000008", title: "bulb - Maharashtra - Jamshedpur", status: "New", priority: null, assignee: "agent1", sla: "On Track", source: "INC-2026-000143" },
-  { id: "4", number: "REQ-2026-000007", title: "bulb - Maharashtra - Jamshedpur", status: "New", priority: "High", assignee: "Supervisor", sla: "On Track", source: "INC-2026-000142" },
-  { id: "5", number: "REQ-2026-000006", title: "Testing request 9/2", status: "Close", priority: null, assignee: "agent1", sla: "On Track", source: null },
-  { id: "6", number: "REQ-2026-000002", title: "Test Request", status: "In Progress", priority: null, assignee: "contractor1", sla: "On Track", source: "INC-2026-000141" },
+  { id: "1", number: "REQ-2026-000010", title: "Test BA 4/2- 3", status: "New", priority: "Medium", assignee: "contractor1", sla: "On Track", source: "INC-2026-000145", created: "2026-05-15" },
+  { id: "2", number: "REQ-2026-000009", title: "bulb - Maharashtra - Kollam", status: "New", priority: "Medium", assignee: "contractor1", sla: "On Track", source: "INC-2026-000144", created: "2026-05-14" },
+  { id: "3", number: "REQ-2026-000008", title: "bulb - Maharashtra - Jamshedpur", status: "New", priority: null, assignee: "agent1", sla: "On Track", source: "INC-2026-000143", created: "2026-05-13" },
+  { id: "4", number: "REQ-2026-000007", title: "bulb - Maharashtra - Jamshedpur", status: "New", priority: "High", assignee: "Supervisor", sla: "On Track", source: "INC-2026-000142", created: "2026-05-10" },
+  { id: "5", number: "REQ-2026-000006", title: "Testing request 9/2", status: "Close", priority: null, assignee: "agent1", sla: "On Track", source: null, created: "2026-05-09" },
+  { id: "6", number: "REQ-2026-000002", title: "Test Request", status: "In Progress", priority: null, assignee: "contractor1", sla: "On Track", source: "INC-2026-000141", created: "2026-04-28" },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  New: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  "In Progress": "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  Close: "bg-gray-500/20 text-gray-400 border border-gray-500/30",
-  Completed: "bg-green-500/20 text-green-400 border border-green-500/30",
+  New: "badge-blue",
+  "In Progress": "badge-yellow",
+  Close: "badge-gray",
+  Completed: "badge-green",
 };
+
+const PRIORITY_COLORS: Record<string, string> = {
+  Critical: "badge-red",
+  High: "badge-orange",
+  Medium: "badge-yellow",
+  Low: "badge-blue",
+};
+
+const stats = [
+  { label: "Total Requests", value: "10", change: "+2", trend: "up", color: "text-[--color-accent]", bg: "bg-[--color-accent]/10", border: "border-[--color-accent]/20", icon: FileText },
+  { label: "New", value: "4", change: "+1", trend: "up", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: AlertCircle },
+  { label: "In Progress", value: "1", change: "0", trend: "neutral", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: Clock },
+  { label: "Completed", value: "5", change: "+3", trend: "up", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20", icon: CheckCircle2 },
+];
 
 export default function RequestsPage() {
   const [search, setSearch] = useState("");
-  const filtered = MOCK_REQUESTS.filter(r =>
-    r.title.toLowerCase().includes(search.toLowerCase()) ||
-    r.number.toLowerCase().includes(search.toLowerCase())
-  );
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  const filtered = MOCK_REQUESTS.filter(r => {
+    const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
+      r.number.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === "All" || r.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
 
   return (
-    <div className="min-h-screen bg-[#0d1117]">
-      <div className="border-b border-[#30363d] px-6 py-3 flex items-center gap-6 text-sm text-[#8b949e]">
-        <Link href="/requests" className="text-white font-medium">Requests</Link>
-        <span>/</span><span>Management</span>
-        <div className="ml-auto"><Link href="/dashboard" className="hover:text-white">Back to Home</Link></div>
+    <div className="min-h-screen" style={{ background: "var(--color-bg-primary)" }}>
+      {/* Breadcrumb */}
+      <div className="border-b px-6 py-3 flex items-center gap-2 text-sm" style={{ borderColor: "var(--color-border-primary)", background: "var(--color-bg-secondary)" }}>
+        <Link href="/dashboard" className="transition-colors" style={{ color: "var(--color-text-muted)" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--color-accent)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--color-text-muted)")}>
+          Dashboard
+        </Link>
+        <span style={{ color: "var(--color-text-muted)" }}>/</span>
+        <span style={{ color: "var(--color-text-primary)" }}>Requests</span>
       </div>
 
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-6 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-              <FileText size={20} className="text-green-400" />
+            <div className="p-2 rounded-lg" style={{ background: "var(--color-accent)/15", border: "1px solid var(--color-accent)/25" }}>
+              <FileText className="w-6 h-6" style={{ color: "var(--color-accent)" }} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Requests</h1>
-              <p className="text-[#8b949e] text-sm">Track and manage service requests</p>
+              <h1 className="text-2xl font-bold" style={{ color: "var(--color-text-primary)" }}>Requests</h1>
+              <p className="text-sm mt-0.5" style={{ color: "var(--color-text-muted)" }}>Track and manage service requests</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-3 py-2 bg-[#1c2333] border border-[#30363d] rounded-lg text-sm text-white hover:bg-[#21262d]">
-              <RefreshCw size={14} /> Refresh
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors" style={{ background: "var(--color-bg-tertiary)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border-primary)" }}>
+              <RefreshCw className="w-4 h-4" />
+              Refresh
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#6e40c9] rounded-lg text-sm text-white font-medium hover:bg-purple-700">
-              <Plus size={14} /> Create Request
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors" style={{ background: "var(--color-accent)", color: "#fff" }}>
+              <Plus className="w-4 h-4" />
+              Create Request
             </button>
           </div>
         </div>
 
-        <div className="flex gap-3 mb-4">
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6e7681]" />
-            <input type="text" placeholder="Search by title or request number..." value={search}
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className={clsx("rounded-xl p-4 border", stat.bg, stat.border)}>
+                <div className="flex items-center justify-between mb-2">
+                  <Icon className={clsx("w-5 h-5", stat.color)} />
+                  <span className={clsx("text-xs font-medium", stat.trend === "up" ? "text-green-400" : stat.trend === "down" ? "text-red-400" : "text-gray-400")}>
+                    {stat.change !== "0" ? stat.change : "—"}
+                  </span>
+                </div>
+                <p className={clsx("text-2xl font-bold", stat.color)}>{stat.value}</p>
+                <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>{stat.label}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Filters & Search */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--color-text-muted)" }} />
+            <input
+              type="text"
+              placeholder="Search by title or request number..."
+              value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-sm text-white placeholder:text-[#6e7681] focus:outline-none focus:border-[#6e40c9]"
+              className="w-full pl-9 pr-4 py-2 rounded-lg text-sm focus:outline-none transition-colors"
+              style={{ background: "var(--color-bg-tertiary)", border: "1px solid var(--color-border-primary)", color: "var(--color-text-primary)" }}
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 bg-[#1c2333] border border-[#30363d] rounded-lg text-sm text-white">
-            <Filter size={14} /> Filters
-          </button>
+          <div className="flex items-center gap-2">
+            {["All", "New", "In Progress", "Close", "Completed"].map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={clsx("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                  statusFilter === s
+                    ? "text-white"
+                    : "hover:opacity-80"
+                )}
+                style={statusFilter === s
+                  ? { background: "var(--color-accent)", color: "#fff" }
+                  : { background: "var(--color-bg-tertiary)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border-primary)" }
+                }
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="bg-[#1c2333] border border-[#30363d] rounded-xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[#30363d]">
-                {["Request", "Source Incident", "State", "Priority", "Assignee", "SLA", "Actions"].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-medium text-[#8b949e] uppercase">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(req => (
-                <tr key={req.id} className="border-b border-[#30363d] hover:bg-[#21262d] transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="text-[#2188ff] text-sm font-medium">{req.number}</div>
-                    <div className="text-white text-sm">{req.title}</div>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    {req.source ? <span className="text-[#2188ff] hover:underline cursor-pointer">{req.source}</span> : <span className="text-[#6e7681]">-</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded-full ${STATUS_COLORS[req.status] || ""}`}>{req.status}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {req.priority ? <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400">{req.priority}</span> : <span className="text-[#6e7681]">-</span>}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-[#8b949e]">{req.assignee}</td>
-                  <td className="px-4 py-3"><span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">{req.sla}</span></td>
-                  <td className="px-4 py-3"><button className="text-xs text-[#2188ff] hover:text-blue-300">View</button></td>
+        {/* Table */}
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border-primary)", background: "var(--color-bg-secondary)" }}>
+          <div className="overflow-x-auto">
+            <table className="table-synergi w-full">
+              <thead>
+                <tr>
+                  <th>Request</th>
+                  <th>Source Incident</th>
+                  <th>State</th>
+                  <th>Priority</th>
+                  <th>Assignee</th>
+                  <th>SLA</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="px-4 py-3 text-sm text-[#8b949e] border-t border-[#30363d]">Showing 1 to {filtered.length} of 10 requests</div>
+              </thead>
+              <tbody>
+                {filtered.map(req => (
+                  <tr key={req.id}>
+                    <td>
+                      <div>
+                        <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{req.number}</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>{req.title}</p>
+                      </div>
+                    </td>
+                    <td>
+                      {req.source ? (
+                        <Link href="/incidents" className="text-xs font-mono hover:underline" style={{ color: "var(--color-accent)" }}>
+                          {req.source}
+                        </Link>
+                      ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
+                    </td>
+                    <td>
+                      <span className={clsx("badge", STATUS_COLORS[req.status] ?? "badge-gray")}>
+                        {req.status}
+                      </span>
+                    </td>
+                    <td>
+                      {req.priority ? (
+                        <span className={clsx("badge", PRIORITY_COLORS[req.priority] ?? "badge-gray")}>
+                          {req.priority}
+                        </span>
+                      ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
+                    </td>
+                    <td>
+                      <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>{req.assignee}</span>
+                    </td>
+                    <td>
+                      <span className={clsx("badge", req.sla === "Breached" ? "badge-red" : req.sla === "On Track" ? "badge-green" : "badge-gray")}>
+                        {req.sla}
+                      </span>
+                    </td>
+                    <td>
+                      <button className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors" style={{ color: "var(--color-accent)", border: "1px solid var(--color-accent)/30" }}>
+                        <Eye className="w-3 h-3" />
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-4 py-3 border-t flex items-center justify-between text-xs" style={{ borderColor: "var(--color-border-primary)", color: "var(--color-text-muted)" }}>
+            <span>Showing {filtered.length} of 10 requests</span>
+            <div className="flex items-center gap-2">
+              <button className="px-2 py-1 rounded hover:opacity-80" style={{ border: "1px solid var(--color-border-primary)" }}>Previous</button>
+              <button className="px-2 py-1 rounded hover:opacity-80" style={{ border: "1px solid var(--color-border-primary)" }}>Next</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
