@@ -1,0 +1,14 @@
+{
+  "name": "synergi-ims-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix frontend run start",
+    "lint": "npm --prefix frontend run lint",
+    "type-check": "npm --prefix frontend run type-check"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}
