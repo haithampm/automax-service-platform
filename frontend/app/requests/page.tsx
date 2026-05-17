@@ -2,9 +2,17 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import { CheckCircle2, Clock, Download, Eye, FileText, Play, Plus, RefreshCw, Search } from 'lucide-react';
 import { priorityColor, RequestRecord, seedRequests, statusColor } from '../../lib/imsData';
 import { useLocalStorageState } from '../../lib/useLocalStorage';
+
+type StatCard = {
+  label: string;
+  value: number;
+  Icon: LucideIcon;
+  color: string;
+};
 
 export default function RequestsPage() {
   const [requests, setRequests, resetRequests] = useLocalStorageState<RequestRecord[]>('synergi.requests', seedRequests);
@@ -26,6 +34,13 @@ export default function RequestsPage() {
     progress: requests.filter(r => r.status === 'In Progress').length,
     closed: requests.filter(r => r.status === 'Close' || r.status === 'Completed').length,
   };
+
+  const statCards: StatCard[] = [
+    { label: 'Total Requests', value: stats.total, Icon: FileText, color: 'text-blue-400' },
+    { label: 'New', value: stats.new, Icon: Plus, color: 'text-blue-400' },
+    { label: 'In Progress', value: stats.progress, Icon: Clock, color: 'text-yellow-400' },
+    { label: 'Closed', value: stats.closed, Icon: CheckCircle2, color: 'text-green-400' },
+  ];
 
   const processRequest = (id: string, status: RequestRecord['status']) => {
     setRequests(prev => prev.map(request => request.id === id ? {
@@ -61,7 +76,13 @@ export default function RequestsPage() {
         </div>
         {message && <div className="rounded-lg border border-[#6e40c9]/30 bg-[#6e40c9]/10 px-4 py-3 text-sm">{message}</div>}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[['Total Requests', stats.total, FileText, 'text-blue-400'], ['New', stats.new, Plus, 'text-blue-400'], ['In Progress', stats.progress, Clock, 'text-yellow-400'], ['Closed', stats.closed, CheckCircle2, 'text-green-400']].map(([label, value, Icon, color]) => <div key={String(label)} className="card"><Icon className={`w-5 h-5 ${color}`} /><div className={`mt-2 text-2xl font-bold ${color}`}>{String(value)}</div><div className="text-sm text-[#8b949e]">{String(label)}</div></div>)}
+          {statCards.map(({ label, value, Icon, color }) => (
+            <div key={label} className="card">
+              <Icon className={`w-5 h-5 ${color}`} />
+              <div className={`mt-2 text-2xl font-bold ${color}`}>{value}</div>
+              <div className="text-sm text-[#8b949e]">{label}</div>
+            </div>
+          ))}
         </div>
         <div className="card space-y-4">
           <div className="flex gap-3 flex-wrap"><div className="relative flex-1 min-w-[240px]"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6e7681]" size={16}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search requests or source incident..." className="w-full pl-9 pr-4 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-sm text-white" /></div><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="px-3 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-white"><option>All</option><option>New</option><option>In Progress</option><option>Close</option><option>Completed</option></select></div>
