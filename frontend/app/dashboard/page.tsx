@@ -12,7 +12,6 @@ import {
   Clock,
   FileText,
   Headphones,
-  MessageSquareWarning,
   Settings,
   ShieldCheck,
   Sparkles,
