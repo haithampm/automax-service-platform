@@ -1,223 +1,75 @@
-"use client";
-import { useState } from "react";
-import Link from "next/link";
-import {
-  FileText,
-  Plus,
-  RefreshCw,
-  Search,
-  Filter,
-  TrendingUp,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Eye,
-  ChevronDown,
-} from "lucide-react";
-import { clsx } from "clsx";
+'use client';
 
-const MOCK_REQUESTS = [
-  { id: "1", number: "REQ-2026-000010", title: "Test BA 4/2- 3", status: "New", priority: "Medium", assignee: "contractor1", sla: "On Track", source: "INC-2026-000145", created: "2026-05-15" },
-  { id: "2", number: "REQ-2026-000009", title: "bulb - Maharashtra - Kollam", status: "New", priority: "Medium", assignee: "contractor1", sla: "On Track", source: "INC-2026-000144", created: "2026-05-14" },
-  { id: "3", number: "REQ-2026-000008", title: "bulb - Maharashtra - Jamshedpur", status: "New", priority: null, assignee: "agent1", sla: "On Track", source: "INC-2026-000143", created: "2026-05-13" },
-  { id: "4", number: "REQ-2026-000007", title: "bulb - Maharashtra - Jamshedpur", status: "New", priority: "High", assignee: "Supervisor", sla: "On Track", source: "INC-2026-000142", created: "2026-05-10" },
-  { id: "5", number: "REQ-2026-000006", title: "Testing request 9/2", status: "Close", priority: null, assignee: "agent1", sla: "On Track", source: null, created: "2026-05-09" },
-  { id: "6", number: "REQ-2026-000002", title: "Test Request", status: "In Progress", priority: null, assignee: "contractor1", sla: "On Track", source: "INC-2026-000141", created: "2026-04-28" },
-];
-
-const STATUS_COLORS: Record<string, string> = {
-  New: "badge-blue",
-  "In Progress": "badge-yellow",
-  Close: "badge-gray",
-  Completed: "badge-green",
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  Critical: "badge-red",
-  High: "badge-orange",
-  Medium: "badge-yellow",
-  Low: "badge-blue",
-};
-
-const stats = [
-  { label: "Total Requests", value: "10", change: "+2", trend: "up", color: "text-[--color-accent]", bg: "bg-[--color-accent]/10", border: "border-[--color-accent]/20", icon: FileText },
-  { label: "New", value: "4", change: "+1", trend: "up", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: AlertCircle },
-  { label: "In Progress", value: "1", change: "0", trend: "neutral", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: Clock },
-  { label: "Completed", value: "5", change: "+3", trend: "up", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20", icon: CheckCircle2 },
-];
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { CheckCircle2, Clock, Download, Eye, FileText, Play, Plus, RefreshCw, Search } from 'lucide-react';
+import { priorityColor, RequestRecord, seedRequests, statusColor } from '../../lib/imsData';
+import { useLocalStorageState } from '../../lib/useLocalStorage';
 
 export default function RequestsPage() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [requests, setRequests, resetRequests] = useLocalStorageState<RequestRecord[]>('synergi.requests', seedRequests);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+  const [message, setMessage] = useState('');
 
-  const filtered = MOCK_REQUESTS.filter(r => {
-    const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.number.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "All" || r.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const filtered = useMemo(() => requests.filter(request => {
+    const body = `${request.number} ${request.title} ${request.description} ${request.assignee} ${request.classification} ${request.sourceIncidents.join(' ')}`.toLowerCase();
+    return body.includes(search.toLowerCase()) && (statusFilter === 'All' || request.status === statusFilter);
+  }), [requests, search, statusFilter]);
+
+  const activeRequest = requests.find(request => request.id === activeId) ?? null;
+  const stats = {
+    total: requests.length,
+    new: requests.filter(r => r.status === 'New').length,
+    progress: requests.filter(r => r.status === 'In Progress').length,
+    closed: requests.filter(r => r.status === 'Close' || r.status === 'Completed').length,
+  };
+
+  const processRequest = (id: string, status: RequestRecord['status']) => {
+    setRequests(prev => prev.map(request => request.id === id ? {
+      ...request,
+      status,
+      audit: [{ id: `rq-${Date.now()}`, action: `Moved to ${status}`, user: 'Request Processor', timestamp: new Date().toISOString(), notes: note }, ...request.audit],
+    } : request));
+    setMessage(`Request moved to ${status}.`);
+    setNote('');
+    setActiveId(null);
+  };
+
+  const exportCsv = () => {
+    const header = ['Number','Title','Status','Priority','Assignee','Classification','Source Incidents'];
+    const rows = filtered.map(r => [r.number, r.title, r.status, r.priority, r.assignee, r.classification, r.sourceIncidents.join('; ')]);
+    const csv = [header, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'synergi-requests.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-bg-primary)" }}>
-      {/* Breadcrumb */}
-      <div className="border-b px-6 py-3 flex items-center gap-2 text-sm" style={{ borderColor: "var(--color-border-primary)", background: "var(--color-bg-secondary)" }}>
-        <Link href="/dashboard" className="transition-colors" style={{ color: "var(--color-text-muted)" }}
-          onMouseEnter={e => (e.currentTarget.style.color = "var(--color-accent)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "var(--color-text-muted)")}>
-          Dashboard
-        </Link>
-        <span style={{ color: "var(--color-text-muted)" }}>/</span>
-        <span style={{ color: "var(--color-text-primary)" }}>Requests</span>
-      </div>
-
+    <div className="min-h-screen bg-[#0d1117]">
+      <div className="border-b border-[#30363d] px-6 py-3 flex items-center gap-2 text-sm text-[#8b949e]"><Link href="/dashboard" className="hover:text-white">Dashboard</Link><span>/</span><span className="text-white">Requests</span></div>
       <div className="p-6 space-y-6">
-        {/* Page Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg" style={{ background: "var(--color-accent)/15", border: "1px solid var(--color-accent)/25" }}>
-              <FileText className="w-6 h-6" style={{ color: "var(--color-accent)" }} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold" style={{ color: "var(--color-text-primary)" }}>Requests</h1>
-              <p className="text-sm mt-0.5" style={{ color: "var(--color-text-muted)" }}>Track and manage service requests</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors" style={{ background: "var(--color-bg-tertiary)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border-primary)" }}>
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors" style={{ background: "var(--color-accent)", color: "#fff" }}>
-              <Plus className="w-4 h-4" />
-              Create Request
-            </button>
-          </div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center"><FileText className="w-5 h-5 text-blue-400" /></div><div><h1 className="text-2xl font-bold">Request Management</h1><p className="text-sm text-[#8b949e]">View requests, trace source incidents, and process requests through closure.</p></div></div>
+          <div className="flex gap-2"><button onClick={resetRequests} className="btn-secondary"><RefreshCw size={14}/> Reset</button><button onClick={exportCsv} className="btn-secondary"><Download size={14}/> Export</button><button className="btn-primary"><Plus size={14}/> Create Request</button></div>
         </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} className={clsx("rounded-xl p-4 border", stat.bg, stat.border)}>
-                <div className="flex items-center justify-between mb-2">
-                  <Icon className={clsx("w-5 h-5", stat.color)} />
-                  <span className={clsx("text-xs font-medium", stat.trend === "up" ? "text-green-400" : stat.trend === "down" ? "text-red-400" : "text-gray-400")}>
-                    {stat.change !== "0" ? stat.change : "—"}
-                  </span>
-                </div>
-                <p className={clsx("text-2xl font-bold", stat.color)}>{stat.value}</p>
-                <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>{stat.label}</p>
-              </div>
-            );
-          })}
+        {message && <div className="rounded-lg border border-[#6e40c9]/30 bg-[#6e40c9]/10 px-4 py-3 text-sm">{message}</div>}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[['Total Requests', stats.total, FileText, 'text-blue-400'], ['New', stats.new, Plus, 'text-blue-400'], ['In Progress', stats.progress, Clock, 'text-yellow-400'], ['Closed', stats.closed, CheckCircle2, 'text-green-400']].map(([label, value, Icon, color]) => <div key={String(label)} className="card"><Icon className={`w-5 h-5 ${color}`} /><div className={`mt-2 text-2xl font-bold ${color}`}>{String(value)}</div><div className="text-sm text-[#8b949e]">{String(label)}</div></div>)}
         </div>
-
-        {/* Filters & Search */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--color-text-muted)" }} />
-            <input
-              type="text"
-              placeholder="Search by title or request number..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-lg text-sm focus:outline-none transition-colors"
-              style={{ background: "var(--color-bg-tertiary)", border: "1px solid var(--color-border-primary)", color: "var(--color-text-primary)" }}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            {["All", "New", "In Progress", "Close", "Completed"].map(s => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={clsx("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                  statusFilter === s
-                    ? "text-white"
-                    : "hover:opacity-80"
-                )}
-                style={statusFilter === s
-                  ? { background: "var(--color-accent)", color: "#fff" }
-                  : { background: "var(--color-bg-tertiary)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border-primary)" }
-                }
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border-primary)", background: "var(--color-bg-secondary)" }}>
-          <div className="overflow-x-auto">
-            <table className="table-synergi w-full">
-              <thead>
-                <tr>
-                  <th>Request</th>
-                  <th>Source Incident</th>
-                  <th>State</th>
-                  <th>Priority</th>
-                  <th>Assignee</th>
-                  <th>SLA</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(req => (
-                  <tr key={req.id}>
-                    <td>
-                      <div>
-                        <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{req.number}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>{req.title}</p>
-                      </div>
-                    </td>
-                    <td>
-                      {req.source ? (
-                        <Link href="/incidents" className="text-xs font-mono hover:underline" style={{ color: "var(--color-accent)" }}>
-                          {req.source}
-                        </Link>
-                      ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
-                    </td>
-                    <td>
-                      <span className={clsx("badge", STATUS_COLORS[req.status] ?? "badge-gray")}>
-                        {req.status}
-                      </span>
-                    </td>
-                    <td>
-                      {req.priority ? (
-                        <span className={clsx("badge", PRIORITY_COLORS[req.priority] ?? "badge-gray")}>
-                          {req.priority}
-                        </span>
-                      ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
-                    </td>
-                    <td>
-                      <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>{req.assignee}</span>
-                    </td>
-                    <td>
-                      <span className={clsx("badge", req.sla === "Breached" ? "badge-red" : req.sla === "On Track" ? "badge-green" : "badge-gray")}>
-                        {req.sla}
-                      </span>
-                    </td>
-                    <td>
-                      <button className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors" style={{ color: "var(--color-accent)", border: "1px solid var(--color-accent)/30" }}>
-                        <Eye className="w-3 h-3" />
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-4 py-3 border-t flex items-center justify-between text-xs" style={{ borderColor: "var(--color-border-primary)", color: "var(--color-text-muted)" }}>
-            <span>Showing {filtered.length} of 10 requests</span>
-            <div className="flex items-center gap-2">
-              <button className="px-2 py-1 rounded hover:opacity-80" style={{ border: "1px solid var(--color-border-primary)" }}>Previous</button>
-              <button className="px-2 py-1 rounded hover:opacity-80" style={{ border: "1px solid var(--color-border-primary)" }}>Next</button>
-            </div>
-          </div>
+        <div className="card space-y-4">
+          <div className="flex gap-3 flex-wrap"><div className="relative flex-1 min-w-[240px]"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6e7681]" size={16}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search requests or source incident..." className="w-full pl-9 pr-4 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-sm text-white" /></div><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="px-3 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-white"><option>All</option><option>New</option><option>In Progress</option><option>Close</option><option>Completed</option></select></div>
+          <div className="overflow-x-auto rounded-xl border border-[#30363d]"><table className="w-full table-synergi"><thead><tr><th>Request</th><th>Source Incident</th><th>Status</th><th>Priority</th><th>Assignee</th><th>Classification</th><th>Actions</th></tr></thead><tbody>{filtered.map(request => <tr key={request.id}><td><div className="text-[#58a6ff] font-medium text-sm">{request.number}</div><div className="text-white text-sm">{request.title}</div><div className="text-xs text-[#6e7681]">{request.description}</div></td><td>{request.sourceIncidents.length ? request.sourceIncidents.map(src => <div key={src} className="text-xs text-[#a78bfa]">{src}</div>) : <span className="text-[#6e7681]">—</span>}</td><td><span className={`badge ${statusColor(request.status)}`}>{request.status}</span></td><td><span className={`badge ${priorityColor(request.priority)}`}>{request.priority}</span></td><td className="text-sm text-[#8b949e]">{request.assignee}</td><td className="text-sm text-[#8b949e]">{request.classification}</td><td><button onClick={() => setActiveId(request.id)} className="text-xs text-[#a78bfa] hover:text-white"><Eye size={14}/> View / Process</button></td></tr>)}</tbody></table></div>
+          <div className="text-sm text-[#8b949e]">Showing {filtered.length} of {requests.length} requests.</div>
         </div>
       </div>
+      {activeRequest && <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"><div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6 w-full max-w-2xl space-y-4"><div><h2 className="text-lg font-bold">{activeRequest.number}</h2><p className="text-sm text-[#8b949e]">{activeRequest.title}</p></div><div className="grid grid-cols-2 gap-3 text-sm"><div className="card"><strong>Status</strong><div>{activeRequest.status}</div></div><div className="card"><strong>Source Incidents</strong><div>{activeRequest.sourceIncidents.join(', ') || 'None'}</div></div></div><textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Processing note / closure reply" className="textarea w-full" /><div className="card"><h3 className="font-semibold mb-2">Audit</h3>{activeRequest.audit.map(a => <div key={a.id} className="text-xs text-[#8b949e] border-b border-[#30363d] py-2 last:border-0">{a.action} • {a.user} • {new Date(a.timestamp).toLocaleString()} {a.notes ? `• ${a.notes}` : ''}</div>)}</div><div className="flex justify-end gap-3"><button onClick={() => setActiveId(null)} className="btn-secondary">Close</button><button onClick={() => processRequest(activeRequest.id, 'In Progress')} className="btn-secondary"><Play size={14}/> In Progress</button><button onClick={() => processRequest(activeRequest.id, 'Close')} className="btn-primary">Close Request</button></div></div></div>}
     </div>
   );
 }
