@@ -1,85 +1,154 @@
-# AutoMax Service Platform
+# Synergi IMS
 
-A full-stack enterprise service management platform built with Next.js 14, featuring dark-themed UI inspired by GitHub's design system.
+**Synergi IMS** is an enterprise-grade Integrated Incident Management System built with Next.js 14, TypeScript, and Tailwind CSS. It provides a unified platform to manage incidents, service requests, customer complaints, automated workflows, and user administration — all in a clean, dark-themed UI.
+
+---
 
 ## Features
 
-- **Dashboard** - Real-time stats, charts, and KPIs for incidents, requests, and complaints
-- **Incident Management** - Full lifecycle: create, assign, escalate, resolve with SLA tracking
-- **Request Management** - Service requests with approval workflows
-- **Complaint Management** - Customer complaints with SLA breach detection
-- **Workflows** - Automation rules for routing, escalation, and assignment
-- **Admin Panel** - User management, role-based access control (RBAC), permissions
-- **Settings** - SLA rules, notification preferences, integrations
+### Core Modules
+- **Dashboard** — Live KPI cards, module overview, recent activity feed, and system status
+- **Incident Management** — Full lifecycle: create, assign, escalate, resolve with SLA tracking and breach detection
+- **Request Management** — Service requests with approval workflows and fulfillment tracking
+- **Complaint Management** — Customer complaints with escalation levels and SLA monitoring
+- **Workflow Automation** — Auto-routing, escalation, and assignment rule builder
+- **Admin Panel** — User management, role-based access control (RBAC), and department management
+- **Settings** — SLA rules, notification preferences, and system integrations
+
+### UI/UX
+- Collapsible sidebar with Lucide icons and active state highlighting
+- Expandable search bar in the header with instant focus animation
+- Real-time notifications panel with read/unread state and mark-all-read
+- Dynamic breadcrumb navigation
+- Responsive layout supporting all screen sizes
+- Consistent dark theme with a full CSS design token system
+
+### Technical
+- Next.js 14 App Router with TypeScript
+- Tailwind CSS with custom design system and CSS variables
+- `@tanstack/react-query` for server state management
+- `react-hot-toast` for toast notifications
+- Recharts for analytics charts
+- Lucide React for iconography
+- `clsx` + `tailwind-merge` for conditional class merging
+- Radix UI primitives (Dialog, Dropdown, Tooltip)
+
+---
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS
-- **Charts**: Recharts for analytics visualization
-- **Icons**: Lucide React
-- **API**: Next.js Route Handlers (REST API)
-- **Deployment**: Vercel
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS 3 |
+| State | React Query (@tanstack) |
+| Icons | Lucide React |
+| Charts | Recharts |
+| UI Primitives | Radix UI |
+| Notifications | react-hot-toast |
+| Deployment | Vercel |
 
-## Quick Start
+---
+
+## Project Structure
+
+```
+synergi-IMS/
+└── frontend/
+    ├── app/
+    │   ├── layout.tsx          # Root layout with Sidebar + Header
+    │   ├── page.tsx            # Root redirect to /dashboard
+    │   ├── globals.css         # Design system + Tailwind utilities
+    │   ├── providers.tsx       # React Query provider
+    │   ├── dashboard/          # Dashboard page
+    │   ├── incidents/          # Incident management
+    │   ├── requests/           # Service requests
+    │   ├── complaints/         # Complaint management
+    │   ├── workflows/          # Workflow automation
+    │   ├── settings/           # System settings
+    │   ├── admin/
+    │   │   ├── users/          # User management
+    │   │   └── roles/          # Role & permission management
+    │   └── api/                # Next.js API routes
+    │       ├── dashboard/
+    │       ├── incidents/
+    │       └── requests/
+    ├── components/
+    │   ├── Sidebar.tsx         # Collapsible navigation sidebar
+    │   └── Header.tsx          # Top bar with search + notifications
+    └── lib/
+        └── types.ts            # Shared TypeScript interfaces
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+### Installation
 
 ```bash
-# Clone the repo
-git clone https://github.com/haithampm/automax-service-platform.git
-cd automax-service-platform/frontend
+# Clone the repository
+git clone https://github.com/haithampm/synergi-IMS.git
+cd synergi-IMS/frontend
 
 # Install dependencies
 npm install
 
-# Run development server
+# Run the development server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Project Structure
+### Build for Production
 
-```
-frontend/
-  app/
-    dashboard/     - Main dashboard with stats and charts
-    incidents/     - Incident management
-    requests/      - Service requests
-    complaints/    - Customer complaints
-    workflows/     - Automation workflows
-    admin/
-      users/       - User management
-      roles/       - Roles and permissions
-    settings/      - Platform settings
-    api/           - Backend API routes
-  components/
-    Sidebar.tsx    - Navigation sidebar
-    Header.tsx     - Top header with breadcrumb & notifications
-  lib/
-    types.ts       - TypeScript interfaces
+```bash
+npm run build
+npm run start
 ```
 
-## Deploy on Vercel
+### Type Check
 
-1. Connect your GitHub repo to Vercel
-2. Set the **Root Directory** to `frontend`
-3. Framework: **Next.js** (auto-detected)
-4. Click **Deploy**
+```bash
+npm run type-check
+```
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/haithampm/automax-service-platform&root-directory=frontend)
+---
 
-## API Endpoints
+## Deployment
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/dashboard` | GET | Dashboard statistics |
-| `/api/incidents` | GET, POST | List/create incidents |
-| `/api/requests` | GET, POST | List/create requests |
-| `/api/complaints` | GET, POST | List/create complaints |
-| `/api/workflows` | GET, POST | List/create workflows |
-| `/api/admin/users` | GET, POST | User management |
-| `/api/admin/roles` | GET, POST | Role management |
-| `/api/settings` | GET, PUT | Platform settings |
+The application is deployed on **Vercel**. The root directory for Vercel deployment is `frontend`.
+
+To deploy your own instance:
+1. Fork this repository
+2. Connect to Vercel and set **Root Directory** to `frontend`
+3. Deploy
+
+---
+
+## Design System
+
+Synergi IMS uses a consistent set of CSS design tokens defined in `globals.css`:
+
+| Token | Value | Usage |
+|---|---|---|
+| `--color-brand` | `#6e40c9` | Primary purple brand color |
+| `--color-bg-primary` | `#0d1117` | Main background |
+| `--color-bg-secondary` | `#161b22` | Card/input backgrounds |
+| `--color-text-primary` | `#e6edf3` | Main text |
+| `--color-text-muted` | `#6e7681` | Placeholder / muted text |
+
+---
 
 ## License
 
-MIT
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+*Built with Next.js 14 · Tailwind CSS · TypeScript · Vercel*
