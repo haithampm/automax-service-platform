@@ -1,106 +1,227 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { Settings, Bell, Clock, Link as LinkIcon, Save, CheckCircle } from "lucide-react";
+import { clsx } from "clsx";
+
+const tabs = [
+  { id: "general", label: "General" },
+  { id: "sla", label: "SLA Rules" },
+  { id: "notifications", label: "Notifications" },
+  { id: "integrations", label: "Integrations" },
+];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState("general");
   const [saved, setSaved] = useState(false);
-  const [general, setGeneral] = useState({ org_name: 'AutoMax Service', org_email: 'support@automax.com', timezone: 'UTC+3', language: 'en', date_format: 'DD/MM/YYYY' });
-  const [sla, setSla] = useState({ incident_low: 72, incident_medium: 24, incident_high: 8, incident_critical: 2, request_low: 120, request_medium: 48, complaint_high: 12 });
-  const [notifications, setNotifications] = useState({ email_new: true, email_update: true, email_escalation: true, sms_critical: false, in_app: true });
+  const [general, setGeneral] = useState({
+    org_name: "Synergi IMS",
+    org_email: "support@synergi-ims.com",
+    timezone: "UTC+3",
+    language: "en",
+    date_format: "DD/MM/YYYY",
+  });
+  const [sla, setSla] = useState({
+    incident_low: 72,
+    incident_medium: 24,
+    incident_high: 8,
+    incident_critical: 2,
+    request_low: 120,
+    request_medium: 48,
+    complaint_high: 12,
+  });
+  const [notifications, setNotifications] = useState({
+    email_new: true,
+    email_update: true,
+    email_escalation: true,
+    sms_critical: false,
+    in_app: true,
+  });
 
   const handleSave = async () => {
-    await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ general, sla, notifications }) });
+    await fetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ general, sla, notifications }),
+    });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const tabs = [{ id: 'general', label: 'General' }, { id: 'sla', label: 'SLA Rules' }, { id: 'notifications', label: 'Notifications' }, { id: 'integrations', label: 'Integrations' }];
-
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Settings</h1>
-          <p className="text-[#8b949e] text-sm mt-1">Configure your service platform</p>
-        </div>
-        <button onClick={handleSave} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${saved ? 'bg-green-600 text-white' : 'bg-[#2188ff] text-white hover:bg-blue-600'}`}>
-          {saved ? '✓ Saved' : 'Save Changes'}
-        </button>
+    <div className="min-h-screen" style={{ background: "var(--color-bg-primary)" }}>
+      {/* Breadcrumb */}
+      <div className="border-b px-6 py-3 flex items-center gap-2 text-sm" style={{ borderColor: "var(--color-border-primary)", background: "var(--color-bg-secondary)" }}>
+        <Link
+          href="/dashboard"
+          className="transition-colors"
+          style={{ color: "var(--color-text-muted)" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--color-accent)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--color-text-muted)")}
+        >
+          Dashboard
+        </Link>
+        <span style={{ color: "var(--color-text-muted)" }}>/</span>
+        <span style={{ color: "var(--color-text-primary)" }}>Settings</span>
       </div>
-      <div className="flex gap-1 bg-[#161b22] rounded-xl border border-[#30363d] p-1">
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${activeTab === t.id ? 'bg-[#2188ff] text-white' : 'text-[#8b949e] hover:text-white'}`}>{t.label}</button>
-        ))}
-      </div>
-      {activeTab === 'general' && (
-        <div className="bg-[#161b22] rounded-xl border border-[#30363d] p-6 space-y-5">
-          <h2 className="text-white font-semibold">Organization Settings</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-[#8b949e] text-sm block mb-1">Organization Name</label>
-              <input value={general.org_name} onChange={e=>setGeneral({...general,org_name:e.target.value})} className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white text-sm focus:outline-none focus:border-[#2188ff]" />
+
+      <div className="p-6 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg" style={{ background: "var(--color-accent)/15", border: "1px solid var(--color-accent)/25" }}>
+              <Settings className="w-6 h-6" style={{ color: "var(--color-accent)" }} />
             </div>
             <div>
-              <label className="text-[#8b949e] text-sm block mb-1">Support Email</label>
-              <input value={general.org_email} onChange={e=>setGeneral({...general,org_email:e.target.value})} className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white text-sm focus:outline-none focus:border-[#2188ff]" />
-            </div>
-            <div>
-              <label className="text-[#8b949e] text-sm block mb-1">Timezone</label>
-              <select value={general.timezone} onChange={e=>setGeneral({...general,timezone:e.target.value})} className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white text-sm focus:outline-none">
-                <option>UTC+3</option><option>UTC+0</option><option>UTC-5</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[#8b949e] text-sm block mb-1">Language</label>
-              <select value={general.language} onChange={e=>setGeneral({...general,language:e.target.value})} className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white text-sm focus:outline-none">
-                <option value="en">English</option><option value="ar">Arabic</option>
-              </select>
+              <h1 className="text-2xl font-bold" style={{ color: "var(--color-text-primary)" }}>Settings</h1>
+              <p className="text-sm mt-0.5" style={{ color: "var(--color-text-muted)" }}>Configure your service platform</p>
             </div>
           </div>
+          <button
+            onClick={handleSave}
+            className={clsx("flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all", saved ? "opacity-80" : "")}
+            style={{ background: saved ? "var(--color-accent)/50" : "var(--color-accent)", color: "#fff" }}
+          >
+            {saved ? (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                Saved
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save Changes
+              </>
+            )}
+          </button>
         </div>
-      )}
-      {activeTab === 'sla' && (
-        <div className="bg-[#161b22] rounded-xl border border-[#30363d] p-6 space-y-5">
-          <h2 className="text-white font-semibold">SLA Response Times (hours)</h2>
-          <div className="space-y-4">
-            {[['Incident - Low','incident_low'],['Incident - Medium','incident_medium'],['Incident - High','incident_high'],['Incident - Critical','incident_critical'],['Request - Low','request_low'],['Request - Medium','request_medium'],['Complaint - High','complaint_high']].map(([label, key]) => (
-              <div key={key} className="flex items-center gap-4">
-                <label className="text-[#8b949e] text-sm w-48">{label}</label>
-                <input type="number" value={(sla as any)[key]} onChange={e=>setSla({...sla,[key]:Number(e.target.value)})} className="w-24 px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white text-sm focus:outline-none focus:border-[#2188ff]" />
-                <span className="text-[#8b949e] text-sm">hours</span>
-              </div>
-            ))}
-          </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 rounded-xl p-1" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border-primary)" }}>
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={clsx("flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors", activeTab === t.id ? "text-white" : "hover:opacity-80")}
+              style={
+                activeTab === t.id
+                  ? { background: "var(--color-accent)", color: "#fff" }
+                  : { color: "var(--color-text-secondary)" }
+              }
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-      )}
-      {activeTab === 'notifications' && (
-        <div className="bg-[#161b22] rounded-xl border border-[#30363d] p-6 space-y-5">
-          <h2 className="text-white font-semibold">Notification Preferences</h2>
-          <div className="space-y-3">
-            {[['email_new','Email on new ticket'],['email_update','Email on status update'],['email_escalation','Email on escalation'],['sms_critical','SMS for critical incidents'],['in_app','In-app notifications']].map(([key, label]) => (
-              <label key={key} className="flex items-center gap-3 cursor-pointer">
-                <div onClick={()=>setNotifications({...notifications,[key]:!(notifications as any)[key]})} className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer ${(notifications as any)[key] ? 'bg-[#2188ff]' : 'bg-[#30363d]'}`}>
-                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${(notifications as any)[key] ? 'translate-x-5' : 'translate-x-1'}`} />
+
+        {/* Content */}
+        <div className="rounded-xl p-6 space-y-6" style={{ border: "1px solid var(--color-border-primary)", background: "var(--color-bg-secondary)" }}>
+          {activeTab === "general" && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>Organization Settings</h2>
+              {[
+                ["Organization Name", "org_name"],
+                ["Support Email", "org_email"],
+              ].map(([label, key]) => (
+                <div key={key}>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--color-text-secondary)" }}>{label}</label>
+                  <input
+                    value={(general as any)[key]}
+                    onChange={e => setGeneral({ ...general, [key]: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-colors"
+                    style={{ background: "var(--color-bg-tertiary)", border: "1px solid var(--color-border-primary)", color: "var(--color-text-primary)" }}
+                  />
                 </div>
-                <span className="text-white text-sm">{label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-      {activeTab === 'integrations' && (
-        <div className="bg-[#161b22] rounded-xl border border-[#30363d] p-6">
-          <h2 className="text-white font-semibold mb-4">Integrations</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {[{name:'Email (SMTP)',status:'connected'},{name:'SMS Gateway',status:'disconnected'},{name:'Slack',status:'disconnected'},{name:'Webhook',status:'connected'}].map(i => (
-              <div key={i.name} className="bg-[#1c2128] rounded-lg border border-[#30363d] p-4 flex items-center justify-between">
-                <span className="text-white text-sm">{i.name}</span>
-                <span className={`text-xs px-2 py-1 rounded-full ${i.status === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>{i.status}</span>
+              ))}
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--color-text-secondary)" }}>Timezone</label>
+                <select
+                  value={general.timezone}
+                  onChange={e => setGeneral({ ...general, timezone: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none transition-colors"
+                  style={{ background: "var(--color-bg-tertiary)", border: "1px solid var(--color-border-primary)", color: "var(--color-text-primary)" }}
+                >
+                  <option>UTC+3</option>
+                  <option>UTC+0</option>
+                  <option>UTC-5</option>
+                </select>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {activeTab === "sla" && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>SLA Response Times (hours)</h2>
+              {[
+                ["Incident - Low", "incident_low"],
+                ["Incident - Medium", "incident_medium"],
+                ["Incident - High", "incident_high"],
+                ["Incident - Critical", "incident_critical"],
+                ["Request - Low", "request_low"],
+                ["Request - Medium", "request_medium"],
+                ["Complaint - High", "complaint_high"],
+              ].map(([label, key]) => (
+                <div key={key} className="flex items-center justify-between">
+                  <label className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>{label}</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={(sla as any)[key]}
+                      onChange={e => setSla({ ...sla, [key]: Number(e.target.value) })}
+                      className="w-24 px-3 py-2 rounded-lg text-sm focus:outline-none transition-colors text-center"
+                      style={{ background: "var(--color-bg-tertiary)", border: "1px solid var(--color-border-primary)", color: "var(--color-text-primary)" }}
+                    />
+                    <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>hours</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "notifications" && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>Notification Preferences</h2>
+              {[
+                ["email_new", "Email on new ticket"],
+                ["email_update", "Email on status update"],
+                ["email_escalation", "Email on escalation"],
+                ["sms_critical", "SMS for critical incidents"],
+                ["in_app", "In-app notifications"],
+              ].map(([key, label]) => (
+                <div key={key} className="flex items-center justify-between">
+                  <label className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>{label}</label>
+                  <button
+                    onClick={() => setNotifications({ ...notifications, [key]: !(notifications as any)[key] })}
+                    className={clsx("w-11 h-6 rounded-full transition-colors relative", (notifications as any)[key] ? "" : "")}
+                    style={{ background: (notifications as any)[key] ? "var(--color-accent)" : "var(--color-border-primary)" }}
+                  >
+                    <div
+                      className={clsx("absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform", (notifications as any)[key] ? "right-0.5" : "left-0.5")}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "integrations" && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--color-text-primary)" }}>Integrations</h2>
+              {[
+                { name: "Email (SMTP)", status: "connected" },
+                { name: "SMS Gateway", status: "disconnected" },
+                { name: "Slack", status: "disconnected" },
+                { name: "Webhook", status: "connected" },
+              ].map(i => (
+                <div key={i.name} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--color-bg-tertiary)", border: "1px solid var(--color-border-primary)" }}>
+                  <span className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{i.name}</span>
+                  <span className={clsx("badge", i.status === "connected" ? "badge-green" : "badge-gray")}>{i.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
